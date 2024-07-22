@@ -31,5 +31,9 @@
 		"typescript-eslint": "8.0.0-alpha.47",
 		"vite": "^5.3.4"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@supabase/ssr": "^0.4.0",
+		"@supabase/supabase-js": "^2.44.4"
+	}
 }
