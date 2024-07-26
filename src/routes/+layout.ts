@@ -1,17 +1,21 @@
-import { PUBLIC_SUPABASE_ANON_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public'
-import type { LayoutLoad } from './$types'
 import { createBrowserClient, createServerClient, isBrowser } from '@supabase/ssr'
+import { ENV } from '$lib/server/env'
+import type { LayoutLoad } from './$types'
 
-export const load: LayoutLoad = async ({ fetch, data, depends }) => {
+export const load: LayoutLoad = async ({ data, depends, fetch }) => {
+    /**
+     * Declare a dependency so the layout can be invalidated, for example, on
+     * session refresh.
+     */
     depends('supabase:auth')
 
     const supabase = isBrowser()
-        ? createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+        ? createBrowserClient(ENV.PUBLIC_SUPABASE_URL, ENV.PUBLIC_SUPABASE_ANON_KEY, {
             global: {
                 fetch,
             },
         })
-        : createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
+        : createServerClient(ENV.PUBLIC_SUPABASE_URL, ENV.PUBLIC_SUPABASE_ANON_KEY, {
             global: {
                 fetch,
             },
@@ -20,7 +24,7 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
                     return data.cookies
                 },
             },
-        });
+        })
 
     /**
      * It's fine to use `getSession` here, because on the client, `getSession` is
@@ -29,7 +33,11 @@ export const load: LayoutLoad = async ({ fetch, data, depends }) => {
      */
     const {
         data: { session },
-    } = await supabase.auth.getSession();
+    } = await supabase.auth.getSession()
 
-    return { supabase, session };
+    const {
+        data: { user },
+    } = await supabase.auth.getUser()
+
+    return { session, supabase, user }
 }
