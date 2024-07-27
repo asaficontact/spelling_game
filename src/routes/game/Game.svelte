@@ -1,8 +1,9 @@
 <!-- src/routes/Game.svelte -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-    import { writable } from 'svelte/store';
-    import { wordList } from '$lib/stores';
+	import { writable } from 'svelte/store';
+	import { wordList } from '$lib/stores';
+	import { Button } from 'flowbite-svelte';
 
 	let canvas: HTMLCanvasElement;
 	let ctx: any;
@@ -11,7 +12,7 @@
 	let meatCountDiv: HTMLElement;
 	let unitSelection: HTMLElement;
 
-    export let game:any = writable(null);
+	export let game: any = writable(null);
 
 	onMount(() => {
 		canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -26,7 +27,10 @@
 	interface ImageMap {
 		[key: string]: ImageItem;
 	}
-    interface ImageItem { idle: HTMLImageElement|null; attack: HTMLImageElement|null; }
+	interface ImageItem {
+		idle: HTMLImageElement | null;
+		attack: HTMLImageElement | null;
+	}
 
 	let images: ImageMap = {
 		Basic: { idle: null, attack: null },
@@ -47,16 +51,36 @@
 
 	async function loadAllImages() {
 		const imagePromises = [
-			loadImage('/images/basic_idle.gif').then((img) => (images.Basic.idle = img as HTMLImageElement)),
-			loadImage('/images/basic_attack.gif').then((img) => (images.Basic.attack = img as HTMLImageElement)),
-			loadImage('/images/tank_idle.gif').then((img) => (images.Tank.idle = img as HTMLImageElement)),
-			loadImage('/images/tank_attack.gif').then((img) => (images.Tank.attack = img as HTMLImageElement)),
-			loadImage('/images/scout_idle.gif').then((img) => (images.Scout.idle = img as HTMLImageElement)),
-			loadImage('/images/scout_attack.gif').then((img) => (images.Scout.attack = img as HTMLImageElement)),
-			loadImage('/images/steve_idle.gif').then((img) => (images.Steve.idle = img as HTMLImageElement)),
-			loadImage('/images/steve_attack.gif').then((img) => (images.Steve.attack = img as HTMLImageElement)),
-			loadImage('/images/sammie_idle.gif').then((img) => (images.Sammie.idle = img as HTMLImageElement)),
-			loadImage('/images/sammie_attack.gif').then((img) => (images.Sammie.attack = img as HTMLImageElement))
+			loadImage('/images/basic_idle.gif').then(
+				(img) => (images.Basic.idle = img as HTMLImageElement)
+			),
+			loadImage('/images/basic_attack.gif').then(
+				(img) => (images.Basic.attack = img as HTMLImageElement)
+			),
+			loadImage('/images/tank_idle.gif').then(
+				(img) => (images.Tank.idle = img as HTMLImageElement)
+			),
+			loadImage('/images/tank_attack.gif').then(
+				(img) => (images.Tank.attack = img as HTMLImageElement)
+			),
+			loadImage('/images/scout_idle.gif').then(
+				(img) => (images.Scout.idle = img as HTMLImageElement)
+			),
+			loadImage('/images/scout_attack.gif').then(
+				(img) => (images.Scout.attack = img as HTMLImageElement)
+			),
+			loadImage('/images/steve_idle.gif').then(
+				(img) => (images.Steve.idle = img as HTMLImageElement)
+			),
+			loadImage('/images/steve_attack.gif').then(
+				(img) => (images.Steve.attack = img as HTMLImageElement)
+			),
+			loadImage('/images/sammie_idle.gif').then(
+				(img) => (images.Sammie.idle = img as HTMLImageElement)
+			),
+			loadImage('/images/sammie_attack.gif').then(
+				(img) => (images.Sammie.attack = img as HTMLImageElement)
+			)
 		];
 		await Promise.all(imagePromises);
 	}
@@ -265,20 +289,20 @@
 		}
 	}
 
-    async function initializeServer(playerId: string) {   // TODO: Update function so that it receives the return from the server
-        await fetch('/api/game', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ playerId })
-        });
-        return playerId as string;
-    }
-        
+	async function initializeServer(playerId: string) {
+		// TODO: Update function so that it receives the return from the server
+		await fetch('/api/game', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ playerId })
+		});
+		return playerId as string;
+	}
 
 	class Game {
-        playerId: string;
+		playerId: string;
 		player: Player;
 		computer: Player;
 		difficulty: number;
@@ -287,8 +311,8 @@
 		isPaused: boolean;
 		currentWord: string;
 		constructor() {
-            this.playerId = Math.random().toString(36).substring(7);
-            this.initialize();
+			this.playerId = Math.random().toString(36).substring(7);
+			this.initialize();
 			this.player = new Player(new Castle(50, canvas.height - 150, '#8B4513', 100, true));
 			this.computer = new Player(
 				new Castle(canvas.width - 130, canvas.height - 150, '#4682B4', 100, false),
@@ -308,14 +332,14 @@
 			this.currentWord = '';
 		}
 
-        async initialize() {
-        this.playerId = await initializeServer(this.playerId);
-    }
+		async initialize() {
+			this.playerId = await initializeServer(this.playerId);
+		}
 
 		startSpellingQuiz() {
 			this.isPaused = true;
 			this.currentWord = wordList[Math.floor(Math.random() * wordList.length)];
-            console.log('answer:', this.currentWord)
+			console.log('answer:', this.currentWord);
 
 			// Create and show the spelling quiz interface
 			const quizContainer = document.createElement('div');
@@ -364,11 +388,11 @@
 			if (userSpelling === this.currentWord) {
 				this.player.meat += 20;
 				updateMeatCount(this.player.meat);
-                this.sendResultToServer(0, 20, this.currentWord, true);
+				this.sendResultToServer(0, 20, this.currentWord, true);
 				//alert('Correct! You earned 20 meat.');
 			} else {
 				alert(`Sorry, that's incorrect. The correct spelling is: ${this.currentWord}`);
-                this.sendResultToServer(0, 0, this.currentWord, false);
+				this.sendResultToServer(0, 0, this.currentWord, false);
 			}
 
 			// Remove the quiz container and unpause the game
@@ -376,21 +400,21 @@
 			this.isPaused = false;
 		}
 
-        async sendResultToServer(score: number, meatCount: number, word: string, isCorrect: boolean) {
-            await fetch('/api/game', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 
-                    playerId: this.playerId,
-                    score: score, 
-                    additionalMeatCount: meatCount,
-                    word,
-                    isCorrect
-                 })
-            });
-        }
+		async sendResultToServer(score: number, meatCount: number, word: string, isCorrect: boolean) {
+			await fetch('/api/game', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					playerId: this.playerId,
+					score: score,
+					additionalMeatCount: meatCount,
+					word,
+					isCorrect
+				})
+			});
+		}
 
 		createUnitButtons() {
 			this.unitTypes.forEach((unit, index) => {
@@ -482,7 +506,7 @@
 				message = `Game Over! The computer wins.\nYour score: ${score}\n`;
 			}
 
-            await this.sendResultToServer(score, 0, 'adasds', false);
+			await this.sendResultToServer(score, 0, 'adasds', false);
 			alert(message);
 
 			// Reset the game
@@ -509,37 +533,56 @@
 		}
 	}
 
-    function gameLoop() {
-			$game.update();
-			$game.draw();
-			requestAnimationFrame(gameLoop);
-		}
+	function gameLoop() {
+		$game.update();
+		$game.draw();
+		requestAnimationFrame(gameLoop);
+	}
 
 	async function initGame() {
 		await loadAllImages();
 		game.set(new Game());
-        gameLoop();
+		gameLoop();
 	}
 
-    function createUnit(){
-        if (!$game.isPaused) {
-            $game.player.createUnit($game.unitTypes[$game.selectedUnitIndex]);
-        }
-    }
+	function createUnit() {
+		if (!$game.isPaused) {
+			$game.player.createUnit($game.unitTypes[$game.selectedUnitIndex]);
+		}
+	}
 
-    function getMeat(){
-        if (!$game.isPaused) {
-            $game.startSpellingQuiz();
-        }
-    }
+	function getMeat() {
+		if (!$game.isPaused) {
+			$game.startSpellingQuiz();
+		}
+	}
+
+	async function handleLogout() {
+		try {
+			const response = await fetch('/logout', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+			if (response.ok) {
+				window.location.href = '/login';
+			} else {
+				console.error('Failed to logout:', response);
+			}
+		} catch (error) {
+			console.error('Error during logout:', error);
+		}
+	}
 </script>
 
 <div>
 	<h1>Spelling Castle Game</h1>
 	<canvas id="gameCanvas" width="800" height="400"></canvas>
 	<div id="gameControls">
-		<button on:click={createUnit}>Create Unit</button>
-		<button on:click={getMeat}>Get Meat</button>
+		<Button color="green" size="sm" on:click={createUnit}>Create Unit</Button>
+		<Button color="green" size="sm" on:click={getMeat}>Get Meat</Button>
+		<Button color="red" size="sm" on:click={handleLogout}>Logout</Button>
 	</div>
 	<div id="meatCount">Meat: 0</div>
 	<div id="unitSelection">
