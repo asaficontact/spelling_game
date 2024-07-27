@@ -1,4 +1,4 @@
-<!-- src/routes/+page.svelte -->
+<!-- src/routes/+page.svelte
 <script lang="ts">
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { goto } from '$app/navigation';
@@ -102,4 +102,4 @@
 			</form>
 		</div>
 	</div>
-</div>
+</div> -->

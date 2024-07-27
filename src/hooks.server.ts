@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { type Handle, redirect } from '@sveltejs/kit'
 import { sequence } from '@sveltejs/kit/hooks'
-import {ENV} from '$lib/server/env'
+import { ENV } from '$lib/server/env'
 
 const supabase: Handle = async ({ event, resolve }) => {
   /**
