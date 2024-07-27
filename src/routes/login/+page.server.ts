@@ -11,6 +11,10 @@ const loginUserSchema = z.object({
 });
 
 export const load: PageServerLoad = async (event) => {
+    const session = event.locals.session
+    if (session){
+        throw redirect(302, '/');
+    }
     return {
         form: await superValidate(event, zod(loginUserSchema)),
     };
