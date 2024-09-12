@@ -249,7 +249,8 @@
 	}
 
 	function updateMeatCount(meatValue: number) {
-		meatCountDiv.textContent = `Meat: ${meatValue}`;
+	    const meatCountDiv = document.getElementById('meatCount') as HTMLElement;
+	    meatCountDiv.textContent = `Meat: ${meatValue}`;
 	}
 
 	class Player {
@@ -310,15 +311,13 @@
 		selectedUnitIndex: number;
 		isPaused: boolean;
 		currentWord: string;
+		totalScore: number;
+    		gameCount: number;
+
 		constructor() {
 			this.playerId = Math.random().toString(36).substring(7);
 			this.initialize();
-			this.player = new Player(new Castle(50, canvas.height - 150, '#8B4513', 100, true));
-			this.computer = new Player(
-				new Castle(canvas.width - 130, canvas.height - 150, '#4682B4', 100, false),
-				false
-			);
-			this.difficulty = 0.02;
+			this.resetGame();
 			this.unitTypes = [
 				new Unit(0, 0, 'Basic', 1, 1, 1, 1, 1, 'basic'),
 				new Unit(0, 0, 'Tank', 2, 0.5, 60, 4, 2, 'tank'),
@@ -330,7 +329,21 @@
 			this.createUnitButtons();
 			this.isPaused = false;
 			this.currentWord = '';
+			this.totalScore = 0;
+			this.gameCount = 0;
 		}
+
+	    	resetGame() {
+			this.player = new Player(new Castle(50, canvas.height - 150, '#8B4513', 100, true));
+		        this.computer = new Player(
+		            new Castle(canvas.width - 130, canvas.height - 150, '#4682B4', 100, false),
+		            false
+		        );
+		        this.difficulty = 0.02 + (this.gameCount * 0.005); // Increase difficulty with each game
+		        this.player.meat = 0;
+		        updateMeatCount(this.player.meat);
+		    }
+
 
 		async initialize() {
 			this.playerId = await initializeServer(this.playerId);
@@ -495,28 +508,28 @@
 		}
 
 		async gameOver() {
-			let score;
-			let message;
-
-			if (this.player.castle.health > 0) {
-				score = this.player.castle.health;
-				message = `Congratulations! You win!\nYour score: ${score}\n`;
-			} else {
-				score = -1 * this.computer.castle.health;
-				message = `Game Over! The computer wins.\nYour score: ${score}\n`;
-			}
-
-			await this.sendResultToServer(score, 0, 'adasds', false);
-			alert(message);
-
-			// Reset the game
-			this.player.castle.health = this.player.castle.maxHealth;
-			this.computer.castle.health = this.computer.castle.maxHealth;
-			this.player.units = [];
-			this.computer.units = [];
-			this.player.meat = 0;
-			updateMeatCount(this.player.meat);
-		}
+		        let score;
+		        let message;
+		
+		        if (this.player.castle.health > 0) {
+		            score = this.player.castle.health;
+		            this.totalScore += score;
+		            this.gameCount++;
+		            message = `Congratulations! You won game ${this.gameCount}!\nScore this game: ${score}\nTotal score: ${this.totalScore}\n\nPrepare for a harder challenge!`;
+		            await this.sendResultToServer(score, 0, 'game_win', true);
+		            alert(message);
+		            this.resetGame(); // Start a new game with increased difficulty
+		        } else {
+		            score = -1 * this.computer.castle.health;
+		            message = `Game Over! The computer wins.\nFinal score: ${this.totalScore}\nYou won ${this.gameCount} games in a row!`;
+		            await this.sendResultToServer(this.totalScore, 0, 'game_over', false);
+		            alert(message);
+		            // Reset the entire game series
+		            this.totalScore = 0;
+		            this.gameCount = 0;
+		            this.resetGame();
+		        }
+		    }
 
 		draw() {
 			// Draw background
@@ -534,13 +547,15 @@
 	}
 
 	function gameLoop() {
-		$game.update();
-		$game.draw();
-		requestAnimationFrame(gameLoop);
+	    game.update($game => {
+	        $game.update();
+	        $game.draw();
+	        return $game;
+	    });
+	    requestAnimationFrame(gameLoop);
 	}
 
 	async function initGame() {
-		await loadAllImages();
 		game.set(new Game());
 		gameLoop();
 	}
